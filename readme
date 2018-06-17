@@ -1,0 +1,26 @@
+### docker 中save和export ############################################################
+docker export 用于持久化容器（不是镜像）
+ps: docker export container_id > export.tar
+    cat export.tar | docker import - images_id:tag
+
+docker save 用于持久化镜像（不是容器）
+ps: docker save image_tag > save.tar
+    docker load < save.tar
+
+save.tar 比export.tar 文件稍大
+export 持久化的镜像会丢失历史和层（layer），意味着导出后无法回滚到之前的层
+ps: 层回滚操作： docker tag Layer_id image_name
+
+
+##############################################################################################
+### docker commit ################################################################
+通过容器生成新的镜像
+docker commit container_id image_name
+
+
+### docker push #################################################################
+docker tag image_id docker_registory/image_name:tag      # 打tag
+docker push docker_registory/image_name:tag    上传镜像，如果仓库有认证，需要提前login
+
+
+

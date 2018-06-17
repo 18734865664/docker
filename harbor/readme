@@ -1,0 +1,52 @@
+# docker 登陆，配置域名解析，与harbor.cfg里面域名对应
+
+# 搭建harbor私服
+1. 安装docker  yum源
+ wget -O /etc/yum.repos.d/docker-ce.repo https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+wget -O /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
+wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
+yum makecache fast
+
+2. 安装docker-compose
+yum install docker-ce docker-compose -y
+systemctl start docker 
+systemctl enable docker
+
+3. 下载harbor程序包
+wget https://storage.googleapis.com/harbor-releases/release-1.4.0/harbor-online-installer-v1.4.0.tgz
+tar xvf harbor-online-installer-v1.4.0.tgz
+
+4. 修改harbor.cfg
+hostname = harbor.51cto.wang (前端域名，也可以是IP，不能是localhost/127.0.0.1)
+ui_url_protocol = https （使用默认的http会导致docker login登录不了，且不安全）
+ssl_cert = /data/harbor/cert/server.crt （证书存放目录及文件名）
+ssl_cert_key = /data/harbor/cert/server.key
+auth_mode = db_auth （本地数据库认证）
+harbor_admin_password = Harbor12345 （admin用户的密码）
+project_creation_restriction = adminonly （仅管理员可以创建项目，everyone为所有人可以创建项目）
+self_registration = on （开启自注册功能）
+
+5. 创建证书
+mkdir /data/harbor/cert && cd /data/harbor/cert
+openssl req -x509 -days 3650 -nodes -newkey rsa:2048 -keyout /data/harbor/cert/server.key -out /data/harbor/cert/server.crt
+(只填Common Name这一项，其他都默认回车)
+
+6. 执行install
+在compose文件中修改路径
+
+7. 登陆 
+docker login -u admin -p 123123 harbor.guoqiang.com/gq
+
+<异地登录>
+1）拷贝证书(在registry所在的服务器上操作）
+mkdir -p /etc/docker/certs.d/harbor.51cto.wang
+cp /data/harbor/cert/server.crt /etc/docker/certs.d/harbor.51cto.wang/ca.crt
+2）在客户端上操作
+mkdir -p /etc/docker/certs.d/harbor.51cto.wang
+拷贝服务端ca.crt到该目录下
+docker login -u admin -p Harbor123456 harbor.51cto.wang 
+WARNING! Using --password via the CLI is insecure. Use --password-stdin.
+Login Succeeded
+
+
+
